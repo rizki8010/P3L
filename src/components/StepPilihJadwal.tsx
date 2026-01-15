@@ -8,7 +8,8 @@ interface StepPilihJadwalProps {
 interface Instructor {
   id: string;
   name: string;
-  specialization?: string;
+  specialization?: string | string[];
+  teaching_categories?: string[];
   image?: string;
 }
 
@@ -16,12 +17,14 @@ interface Slot {
   schedule_id: string;
   instructor_id: string;
   instructor_name: string;
+  instructor_specialization?: string[];
+  instructor_teaching_categories?: string[];
+  room_id: string;
+  room_name: string;
   day_of_week: string; // "monday", etc.
   start_time: string;
   end_time: string;
-  is_available: boolean;
   status: string;
-  classroom?: string;
 }
 
 // Helper to map API days to display days
@@ -45,6 +48,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
 
   // State for filtering context
   const [selectedInstrument, setSelectedInstrument] = useState<string>("");
+  const [selectedClassType, setSelectedClassType] = useState<string>("");
 
   // Selection states
   const [selectedInstructorId, setSelectedInstructorId] = useState("");
@@ -67,8 +71,9 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
       try {
         const parsed = JSON.parse(decodeURIComponent(registrationData));
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Assuming the first entry has the instrument
+          // Assuming the first entry has the instrument and class type
           setSelectedInstrument(parsed[0].instrument || "");
+          setSelectedClassType(parsed[0].classType || "");
         }
       } catch (e) {
         console.error("Failed to parse registrationData cookie", e);
@@ -110,14 +115,33 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
     fetchSlots();
   }, []);
 
-  // Filter Instructors based on selectedInstrument
+  // Filter Instructors based on selectedInstrument and selectedClassType
   const filteredInstructors = instructors.filter((inst) => {
-    if (!selectedInstrument) return true;
-    const spec = inst.specialization || "";
-    // Check if specialization matches (case-insensitive partial match)
-    // Example: spec="Piano & Keyboard", instrument="Piano" -> Match
-    if (!spec) return false;
-    return spec.toLowerCase().includes(selectedInstrument.toLowerCase());
+    // 1. Filter by Instrument
+    if (selectedInstrument) {
+      const spec = inst.specialization;
+      let matchesInstrument = false;
+      if (Array.isArray(spec)) {
+        matchesInstrument = spec.some((s) =>
+          s.toLowerCase().includes(selectedInstrument.toLowerCase())
+        );
+      } else if (typeof spec === "string") {
+        matchesInstrument = spec
+          .toLowerCase()
+          .includes(selectedInstrument.toLowerCase());
+      }
+      if (!matchesInstrument) return false;
+    }
+
+    // 2. Filter by Class Type (teaching_categories)
+    if (selectedClassType && inst.teaching_categories) {
+      const matchesCategory = inst.teaching_categories.some(
+        (cat) => cat.toLowerCase() === selectedClassType.toLowerCase()
+      );
+      if (!matchesCategory) return false;
+    }
+
+    return true;
   });
 
   // Filter Days based on selectedInstructor
@@ -125,12 +149,32 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
   const availableDaysForInstructor = Array.from(
     new Set(
       slots
-        .filter(
-          (s) =>
-            s.instructor_id === selectedInstructorId &&
-            // We only want days that have at least one AVAILABLE slot
-            s.status === "available"
-        )
+        .filter((s) => {
+          const matchesInstructor = s.instructor_id === selectedInstructorId;
+          const isAvailable = s.status === "available";
+
+          // Optional extra validation: ensure slot still matches instrument & classType (server-side should handle this, but for safety)
+          let matchesInstrument = true;
+          if (selectedInstrument && s.instructor_specialization) {
+            matchesInstrument = s.instructor_specialization.some((spec) =>
+              spec.toLowerCase().includes(selectedInstrument.toLowerCase())
+            );
+          }
+
+          let matchesClass = true;
+          if (selectedClassType && s.instructor_teaching_categories) {
+            matchesClass = s.instructor_teaching_categories.some(
+              (cat) => cat.toLowerCase() === selectedClassType.toLowerCase()
+            );
+          }
+
+          return (
+            matchesInstructor &&
+            isAvailable &&
+            matchesInstrument &&
+            matchesClass
+          );
+        })
         .map((s) => dayMap[s.day_of_week.toLowerCase()] || s.day_of_week)
     )
   ).sort((a, b) => {
@@ -180,7 +224,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
             s.status === "available"
           );
         })
-        .map((s) => s.classroom || "Regular Room")
+        .map((s) => s.room_name || "Regular Room")
     )
   ).sort();
 
@@ -290,7 +334,13 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
             {filteredInstructors.map((inst) => (
               <option key={inst.id} value={inst.id}>
                 {inst.name}{" "}
-                {inst.specialization ? `(${inst.specialization})` : ""}
+                {inst.specialization
+                  ? `(${
+                      Array.isArray(inst.specialization)
+                        ? inst.specialization.join(", ")
+                        : inst.specialization
+                    })`
+                  : ""}
               </option>
             ))}
           </select>

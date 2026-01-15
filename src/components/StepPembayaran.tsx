@@ -124,6 +124,7 @@ const StepPembayaran = ({ onNext, onBack }: StepPembayaranProps) => {
         notes: `Payment Method: ${method}`,
         referral_source: "website",
         type_course: dataDiri.classType,
+        occupation: dataDiri.occupation, // Add occupation here
       };
 
       // Add optional fields only if they exist and aren't empty

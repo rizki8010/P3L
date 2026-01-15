@@ -37,6 +37,13 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
   const [levels, setLevels] = useState<string[]>([]);
   const [classTypes, setClassTypes] = useState<ClassType[]>([]);
   const [isLoadingInstruments, setIsLoadingInstruments] = useState(false);
+  const [occupations] = useState([
+    { value: "pelajar", label: "Pelajar" },
+    { value: "mahasiswa", label: "Mahasiswa" },
+    { value: "pekerja_swasta", label: "Pekerja Swasta" },
+    { value: "pns", label: "PNS" },
+    { value: "wiraswasta", label: "Wiraswasta" },
+  ]);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -50,7 +57,7 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
     course_id: "",
     price: 0,
     level: "",
-    individualStatus: "",
+    occupation: "",
     school: "",
     studentClass: "",
     guardian_name: "",
@@ -126,8 +133,6 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
       setClassTypes([]);
     }
   }, [form.instrument, allCourses]);
-
-
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -211,12 +216,12 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
       alert("Tingkat kemampuan harus dipilih!");
       return;
     }
-    if (!form.individualStatus) {
-      alert("Status individu harus dipilih!");
+    if (!form.occupation) {
+      alert("Pekerjaan harus dipilih!");
       return;
     }
 
-    if (form.individualStatus === "Pelajar") {
+    if (form.occupation === "pelajar") {
       if (!form.school.trim()) {
         alert("Nama sekolah harus diisi!");
         return;
@@ -365,28 +370,28 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
             />
           </div>
         </div>
-        {/* Status Individu */}
+        {/* Pekerjaan */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Status Individu <span className="text-red-500">*</span>
+            Pekerjaan / Status <span className="text-red-500">*</span>
           </label>
           <select
-            name="individualStatus"
-            value={form.individualStatus}
+            name="occupation"
+            value={form.occupation}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-gray-700"
           >
-            <option value="">Pilih Status</option>
-            <option value="Pelajar">Pelajar</option>
-            <option value="Mahasiswa">Mahasiswa</option>
-            <option value="Pekerja Swasta">Pekerja Swasta</option>
-            <option value="PNS">PNS</option>
-            <option value="Umum">Umum</option>
+            <option value="">Pilih Pekerjaan</option>
+            {occupations.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Form Tambahan untuk Pelajar */}
-        {form.individualStatus === "Pelajar" && (
+        {form.occupation === "pelajar" && (
           <div className="space-y-4">
             {/* Data Sekolah */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
