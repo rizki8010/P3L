@@ -2,11 +2,19 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 interface StepPembayaranProps {
-  onNext: () => void;
   onBack: () => void;
+  onNext: () => void;
+  showNotification: (
+    message: string,
+    type?: "error" | "success" | "info",
+  ) => void;
 }
 
-const StepPembayaran = ({ onNext, onBack }: StepPembayaranProps) => {
+const StepPembayaran = ({
+  onBack,
+  onNext,
+  showNotification,
+}: StepPembayaranProps) => {
   const [method, setMethod] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [registrationData, setRegistrationData] = useState<any>(null);
@@ -39,12 +47,12 @@ const StepPembayaran = ({ onNext, onBack }: StepPembayaranProps) => {
     if (isSubmitting) return;
 
     if (!method) {
-      alert("Pilih metode pembayaran");
+      showNotification("Pilih metode pembayaran", "error");
       return;
     }
 
     if (!file) {
-      alert("Upload bukti pembayaran");
+      showNotification("Upload bukti pembayaran", "error");
       return;
     }
 
@@ -174,20 +182,16 @@ const StepPembayaran = ({ onNext, onBack }: StepPembayaranProps) => {
         };
 
         document.cookie = `finalRegistration=${encodeURIComponent(
-          JSON.stringify(finalData)
+          JSON.stringify(finalData),
         )}; path=/`;
 
         onNext();
       } else {
-        alert(`Registration failed: ${result.message}`);
+        showNotification(`Registration failed: ${result.message}`, "error");
       }
     } catch (error) {
       console.error("Error submitting registration:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat mengirim pendaftaran."
-      );
+      showNotification("Terjadi kesalahan, silakan coba lagi.", "error");
     } finally {
       setIsSubmitting(false);
     }

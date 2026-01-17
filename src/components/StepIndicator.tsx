@@ -12,7 +12,6 @@ const StepIndicator = ({ step }: StepIndicatorProps) => {
           const stepNumber = index + 1;
           const isCompleted = step > stepNumber;
           const isActive = step === stepNumber;
-          const isUpcoming = step < stepNumber;
 
           return (
             <div
@@ -27,8 +26,8 @@ const StepIndicator = ({ step }: StepIndicatorProps) => {
                     isCompleted
                       ? "bg-red-500 text-white"
                       : isActive
-                      ? "bg-red-500 text-white ring-4 ring-red-200"
-                      : "bg-gray-300 text-gray-500"
+                        ? "bg-red-500 text-white ring-4 ring-red-200"
+                        : "bg-gray-300 text-gray-500"
                   }`}
                 >
                   {isCompleted ? "✓" : stepNumber}

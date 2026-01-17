@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 
 interface StepDataDiriProps {
   onNext: () => void;
+  showNotification: (
+    message: string,
+    type?: "error" | "success" | "info",
+  ) => void;
 }
 
 interface Course {
@@ -31,7 +35,7 @@ interface ClassType {
   course_id: string;
 }
 
-const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
+const StepDataDiri = ({ onNext, showNotification }: StepDataDiriProps) => {
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [instruments, setInstruments] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
@@ -69,7 +73,7 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
       setIsLoadingInstruments(true);
       try {
         const response = await fetch(
-          "https://api.shemamusic.my.id/api/courses"
+          "https://api.shemamusic.my.id/api/courses",
         );
         const result: ApiResponse = await response.json();
         if (
@@ -81,7 +85,7 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
 
           // Extract unique instruments from all courses initially
           const uniqueInstruments = Array.from(
-            new Set(result.data.courses.map((course) => course.instrument))
+            new Set(result.data.courses.map((course) => course.instrument)),
           ).sort();
           setInstruments(uniqueInstruments);
         }
@@ -95,16 +99,41 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
     fetchInstruments();
   }, []);
 
+  // Restore state from cookie on mount
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(";").shift();
+    };
+
+    const cookieData = getCookie("registrationData");
+    if (cookieData) {
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(cookieData));
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
+          // Merge with default form to ensure all fields exist
+          setForm((prev) => ({
+            ...prev,
+            ...parsedData[0],
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to parse registrationData cookie", e);
+      }
+    }
+  }, []);
+
   // Update available levels and class types when instrument changes
   useEffect(() => {
     if (form.instrument) {
       const filteredCourses = allCourses.filter(
-        (course) => course.instrument === form.instrument
+        (course) => course.instrument === form.instrument,
       );
 
       // Extract unique levels for this instrument
       const uniqueLevels = Array.from(
-        new Set(filteredCourses.map((course) => course.level))
+        new Set(filteredCourses.map((course) => course.level)),
       ).sort();
       setLevels(uniqueLevels);
 
@@ -137,7 +166,7 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
 
@@ -167,75 +196,75 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
   const handleSubmit = () => {
     // Validasi semua field harus diisi
     if (!form.full_name.trim()) {
-      alert("Nama lengkap harus diisi!");
+      showNotification("Nama lengkap harus diisi!", "error");
       return;
     }
 
     if (!form.email.trim()) {
-      alert("Email harus diisi!");
+      showNotification("Email harus diisi!", "error");
       return;
     }
 
     // Validasi format email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      alert("Format email tidak valid!");
+      showNotification("Format email tidak valid!", "error");
       return;
     }
 
     if (!form.phone.trim()) {
-      alert("No. Telepon / WhatsApp harus diisi!");
+      showNotification("No. Telepon / WhatsApp harus diisi!", "error");
       return;
     }
 
     if (!form.birth_date) {
-      alert("Tanggal lahir harus diisi!");
+      showNotification("Tanggal lahir harus diisi!", "error");
       return;
     }
     if (!form.birth_place) {
-      alert("Tempat lahir harus diisi!");
+      showNotification("Tempat lahir harus diisi!", "error");
       return;
     }
 
     if (!form.address.trim()) {
-      alert("Alamat harus diisi!");
+      showNotification("Alamat harus diisi!", "error");
       return;
     }
 
     if (!form.instrument) {
-      alert("Instrumen harus dipilih!");
+      showNotification("Instrumen harus dipilih!", "error");
       return;
     }
 
     if (!form.classType) {
-      alert("Jenis kelas harus dipilih!");
+      showNotification("Jenis kelas harus dipilih!", "error");
       return;
     }
 
     if (!form.level) {
-      alert("Tingkat kemampuan harus dipilih!");
+      showNotification("Tingkat kemampuan harus dipilih!", "error");
       return;
     }
     if (!form.occupation) {
-      alert("Pekerjaan harus dipilih!");
+      showNotification("Pekerjaan harus dipilih!", "error");
       return;
     }
 
     if (form.occupation === "pelajar") {
       if (!form.school.trim()) {
-        alert("Nama sekolah harus diisi!");
+        showNotification("Nama sekolah harus diisi!", "error");
         return;
       }
       if (!form.studentClass.trim()) {
-        alert("Kelas harus diisi!");
+        showNotification("Kelas harus diisi!", "error");
         return;
       }
       if (!form.guardian_name.trim()) {
-        alert("Nama wali/orang tua harus diisi!");
+        showNotification("Nama wali/orang tua harus diisi!", "error");
         return;
       }
       if (!form.guardian_phone.trim()) {
-        alert("Nomor WhatsApp wali harus diisi!");
+        showNotification("Nomor WhatsApp wali harus diisi!", "error");
         return;
       }
     }
@@ -245,7 +274,7 @@ const StepDataDiri = ({ onNext }: StepDataDiriProps) => {
 
     // simpan ke cookie (stringify)
     document.cookie = `registrationData=${encodeURIComponent(
-      JSON.stringify(dataArray)
+      JSON.stringify(dataArray),
     )}; path=/`;
 
     onNext();

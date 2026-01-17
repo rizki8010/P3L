@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import blogDummy from "../data/blogDummy";
 import { BlogCard } from "../components/BlogCard";

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface Course {
   id: string;
@@ -35,7 +35,9 @@ const ClassCard = ({
     >
       {/* CONTENT */}
       <div className="flex-grow">
-        <h2 className="text-2xl sm:text-3xl text-gray-800 font-bold mb-2">{title}</h2>
+        <h2 className="text-2xl sm:text-3xl text-gray-800 font-bold mb-2">
+          {title}
+        </h2>
 
         <p className="text-red-600 font-bold text-xl sm:text-2xl mt-1">
           {price}
@@ -47,7 +49,9 @@ const ClassCard = ({
 
         <ul className="list-disc ml-5 mt-4 text-sm sm:text-base md:text-lg text-gray-700 space-y-1">
           {featuresLeft.map((feat, i) => (
-            <li key={i} className="capitalize">{feat}</li>
+            <li key={i} className="capitalize">
+              {feat}
+            </li>
           ))}
         </ul>
       </div>
@@ -68,7 +72,7 @@ const Class = () => {
     const fetchClasses = async () => {
       try {
         const response = await fetch(
-          "https://api.shemamusic.my.id/api/courses"
+          "https://api.shemamusic.my.id/api/courses",
         );
         const result = await response.json();
 
@@ -98,15 +102,16 @@ const Class = () => {
                 price:
                   course.price_per_session > 0
                     ? `Rp ${course.price_per_session.toLocaleString(
-                        "id-ID"
+                        "id-ID",
                       )}/sesi`
                     : "Hubungi Kami",
-                desc: course.description || "Kelas musik berkualitas untuk Anda",
+                desc:
+                  course.description || "Kelas musik berkualitas untuk Anda",
                 featuresLeft: features,
                 borderColor: "border-red-500",
                 type_course: course.type_course || "general",
               };
-            }
+            },
           );
 
           setClassData(classesData);

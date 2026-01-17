@@ -15,13 +15,14 @@ import bass from "../assets/bass.png";
 import saxophone from "../assets/saxophone.png";
 
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 
-const fadeInUp = {
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 60 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
+    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 };
 
@@ -390,9 +391,10 @@ const Home = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/ai-recommendation")}
                 className="mt-4 sm:mt-6 bg-red-500 hover:bg-red-600 text-white font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full text-sm sm:text-base shadow-lg"
               >
-                Dapatkan Rekomendasi Kelas
+                Temukan Rekomendasi
               </motion.button>
             </motion.div>
           </div>

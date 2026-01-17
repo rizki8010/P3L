@@ -5,6 +5,7 @@ import About from "./pages/About";
 import Blog from "./pages/Blog";
 import BlogDescription from "./pages/BlogDescription";
 import Registration from "./pages/Registration";
+import AIRecommendation from "./pages/AIRecommendation";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDescription />} />
         <Route path="/registration" element={<Registration />} />
+        <Route path="/ai-recommendation" element={<AIRecommendation />} />
       </Routes>
     </Router>
   );

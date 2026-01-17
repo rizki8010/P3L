@@ -1,15 +1,15 @@
-import { useRef } from "react";
 import { Award, Lightbulb, Users } from "lucide-react";
 import MainLayout from "../layouts/MainLayout";
 import abouthero from "../assets/aboutheroa.png";
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 
-const fadeInUp = {
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 50 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
+    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 };
 
@@ -27,7 +27,7 @@ const About = () => {
   // Load semua gambar dari folder assets/siswa
   const studentImages = import.meta.glob(
     "../assets/siswa/*.{png,jpg,jpeg,svg,webp}",
-    { eager: true }
+    { eager: true },
   );
 
   const students = Object.keys(studentImages).map((path, index) => ({

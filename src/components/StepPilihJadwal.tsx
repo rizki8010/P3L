@@ -3,6 +3,10 @@ import { useState, useEffect } from "react";
 interface StepPilihJadwalProps {
   onNext: () => void;
   onBack: () => void;
+  showNotification: (
+    message: string,
+    type?: "error" | "success" | "info",
+  ) => void;
 }
 
 interface Instructor {
@@ -39,10 +43,14 @@ const dayMap: { [key: string]: string } = {
 };
 
 const displayDayToApi: { [key: string]: string } = Object.entries(
-  dayMap
+  dayMap,
 ).reduce((acc, [k, v]) => ({ ...acc, [v]: k }), {});
 
-const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
+const StepPilihJadwal = ({
+  onNext,
+  onBack,
+  showNotification,
+}: StepPilihJadwalProps) => {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
 
@@ -79,6 +87,21 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
         console.error("Failed to parse registrationData cookie", e);
       }
     }
+
+    // Restore schedule data
+    const scheduleData = getCookie("scheduleData");
+    if (scheduleData) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(scheduleData));
+        if (parsed) {
+          if (parsed.instructorId) setSelectedInstructorId(parsed.instructorId);
+          if (Array.isArray(parsed.schedules))
+            setSelectedSchedules(parsed.schedules);
+        }
+      } catch (e) {
+        console.error("Failed to parse scheduleData cookie", e);
+      }
+    }
   }, []);
 
   // Fetch Instructors
@@ -102,7 +125,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
     const fetchSlots = async () => {
       try {
         const response = await fetch(
-          "/api/booking/availability/find-slots?include_all=true"
+          "/api/booking/availability/find-slots?include_all=true",
         );
         const data = await response.json();
         if (data.success && data.data && Array.isArray(data.data.slots)) {
@@ -123,7 +146,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
       let matchesInstrument = false;
       if (Array.isArray(spec)) {
         matchesInstrument = spec.some((s) =>
-          s.toLowerCase().includes(selectedInstrument.toLowerCase())
+          s.toLowerCase().includes(selectedInstrument.toLowerCase()),
         );
       } else if (typeof spec === "string") {
         matchesInstrument = spec
@@ -136,7 +159,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
     // 2. Filter by Class Type (teaching_categories)
     if (selectedClassType && inst.teaching_categories) {
       const matchesCategory = inst.teaching_categories.some(
-        (cat) => cat.toLowerCase() === selectedClassType.toLowerCase()
+        (cat) => cat.toLowerCase() === selectedClassType.toLowerCase(),
       );
       if (!matchesCategory) return false;
     }
@@ -157,14 +180,14 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
           let matchesInstrument = true;
           if (selectedInstrument && s.instructor_specialization) {
             matchesInstrument = s.instructor_specialization.some((spec) =>
-              spec.toLowerCase().includes(selectedInstrument.toLowerCase())
+              spec.toLowerCase().includes(selectedInstrument.toLowerCase()),
             );
           }
 
           let matchesClass = true;
           if (selectedClassType && s.instructor_teaching_categories) {
             matchesClass = s.instructor_teaching_categories.some(
-              (cat) => cat.toLowerCase() === selectedClassType.toLowerCase()
+              (cat) => cat.toLowerCase() === selectedClassType.toLowerCase(),
             );
           }
 
@@ -175,8 +198,8 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
             matchesClass
           );
         })
-        .map((s) => dayMap[s.day_of_week.toLowerCase()] || s.day_of_week)
-    )
+        .map((s) => dayMap[s.day_of_week.toLowerCase()] || s.day_of_week),
+    ),
   ).sort((a, b) => {
     // Sort days nicely (Monday first)
     const daysOrder = [
@@ -203,8 +226,8 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
             s.status === "available"
           );
         })
-        .map((s) => `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}`)
-    )
+        .map((s) => `${s.start_time.slice(0, 5)} - ${s.end_time.slice(0, 5)}`),
+    ),
   ).sort();
 
   // Filter Rooms based on selectedInstructor + selectedDay + selectedTime
@@ -215,7 +238,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
           const dayApi = displayDayToApi[selectedDay];
           const timeStr = `${s.start_time.slice(0, 5)} - ${s.end_time.slice(
             0,
-            5
+            5,
           )}`;
           return (
             s.instructor_id === selectedInstructorId &&
@@ -224,8 +247,8 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
             s.status === "available"
           );
         })
-        .map((s) => s.room_name || "Regular Room")
-    )
+        .map((s) => s.room_name || "Regular Room"),
+    ),
   ).sort();
 
   const handleAddSchedule = () => {
@@ -235,7 +258,10 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
       !selectedTime ||
       !selectedRoom
     ) {
-      alert("Mohon lengkapi pilihan jadwal (Instruktur, Hari, Jam, Ruangan)");
+      showNotification(
+        "Mohon lengkapi pilihan jadwal (Instruktur, Hari, Jam, Ruangan)",
+        "error",
+      );
       return;
     }
 
@@ -246,12 +272,12 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
     const scheduleStr = `${instructorName}, ${selectedDay}, ${selectedTime}, ${selectedRoom}`;
 
     if (selectedSchedules.includes(scheduleStr)) {
-      alert("Jadwal ini sudah dipilih.");
+      showNotification("Jadwal ini sudah dipilih.", "info");
       return;
     }
 
     if (selectedSchedules.length >= 2) {
-      alert("Maksimal memilih 2 jadwal.");
+      showNotification("Maksimal memilih 2 jadwal.", "info");
       return;
     }
 
@@ -292,7 +318,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
     };
 
     document.cookie = `scheduleData=${encodeURIComponent(
-      JSON.stringify(data)
+      JSON.stringify(data),
     )}; path=/`;
 
     onNext();
@@ -471,7 +497,7 @@ const StepPilihJadwal = ({ onNext, onBack }: StepPilihJadwalProps) => {
                   <button
                     onClick={() =>
                       setSelectedSchedules(
-                        selectedSchedules.filter((s) => s !== item)
+                        selectedSchedules.filter((s) => s !== item),
                       )
                     }
                     className="text-gray-400 hover:text-red-500 transition-colors p-1"

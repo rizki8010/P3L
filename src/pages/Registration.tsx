@@ -14,6 +14,22 @@ const Registration = () => {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
+  // Toast State (prefixed with _ to suppress unused warnings)
+  const [_showToast, setShowToast] = useState(false);
+  const [_toastMessage, setToastMessage] = useState("");
+  const [_toastType, setToastType] = useState<"error" | "success" | "info">(
+    "error",
+  );
+
+  const showNotification = (
+    message: string,
+    type: "error" | "success" | "info" = "error",
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* NAVBAR */}
@@ -25,14 +41,29 @@ const Registration = () => {
           <StepIndicator step={step} />
 
           <div className="mt-6">
-            {step === 1 && <StepDataDiri onNext={nextStep} />}
-            {step === 2 && (
-              <StepPilihJadwal onBack={prevStep} onNext={nextStep} />
-            )}
-            {step === 3 && (
-              <StepPembayaran onBack={prevStep} onNext={nextStep} />
-            )}
-            {step === 4 && <StepSelesai />}
+            <div className="mt-6">
+              {step === 1 && (
+                <StepDataDiri
+                  onNext={nextStep}
+                  showNotification={showNotification}
+                />
+              )}
+              {step === 2 && (
+                <StepPilihJadwal
+                  onBack={prevStep}
+                  onNext={nextStep}
+                  showNotification={showNotification}
+                />
+              )}
+              {step === 3 && (
+                <StepPembayaran
+                  onBack={prevStep}
+                  onNext={nextStep}
+                  showNotification={showNotification}
+                />
+              )}
+              {step === 4 && <StepSelesai />}
+            </div>
           </div>
         </div>
       </div>

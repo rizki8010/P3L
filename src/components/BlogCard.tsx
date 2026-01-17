@@ -1,8 +1,21 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
-export const BlogCard = ({ id, title, excerpt, date, image }) => {
-  const limitWords = (text, limit = 10) => {
+interface BlogCardProps {
+  id: string | number;
+  title: string;
+  excerpt: string;
+  date: string;
+  image: string;
+}
+
+export const BlogCard = ({
+  id,
+  title,
+  excerpt,
+  date,
+  image,
+}: BlogCardProps) => {
+  const limitWords = (text: string, limit = 10) => {
     const words = text.split(" ");
     return words.length > limit
       ? words.slice(0, limit).join(" ") + "..."
